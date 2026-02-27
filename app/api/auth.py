@@ -1,5 +1,6 @@
 from fastapi import APIRouter, HTTPException, Response
 
+from app.api.deps import DB
 from app.core import (
     REFRESH_TOKEN_EXPIRE_DAYS,
     create_access_token,
@@ -13,8 +14,8 @@ router = APIRouter()
 
 
 @router.post("/login")
-def login(payload: UserLogin, response: Response):
-    user = get_user_by_email(payload.email)
+def login(payload: UserLogin, response: Response, db: DB):
+    user = get_user_by_email(db, payload.email)
 
     if not user:
         raise HTTPException(status_code=400, detail="user does not exist")
@@ -51,12 +52,12 @@ def login(payload: UserLogin, response: Response):
 
 # Auth related api
 @router.post("/register", response_model=UserRead)
-def register(payload: UserCreate):
+def register(payload: UserCreate, db: DB):
 
-    exists = get_user_by_email(payload.email)
+    exists = get_user_by_email(db, payload.email)
 
     if exists:
         raise HTTPException(status_code=400, detail="User already exists")
 
-    user = create_user(payload)
+    user = create_user(db=db, payload=payload)
     return user

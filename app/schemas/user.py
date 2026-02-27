@@ -1,5 +1,7 @@
 from pydantic import BaseModel, ConfigDict, EmailStr
 
+from app.schemas import BaseEntity
+
 
 class UserBase(BaseModel):
     name: str
@@ -15,7 +17,6 @@ class UserLogin(BaseModel):
     password: str
 
 
-class UserRead(UserBase):
+class UserRead(BaseEntity, UserBase):
     model_config = ConfigDict(from_attributes=True)
-    id: int
     is_verified: bool

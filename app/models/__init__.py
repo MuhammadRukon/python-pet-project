@@ -1,3 +1,5 @@
-from .user import Base, UserModel
+from .base import Base, BaseEntity
+from .city import CityModel
+from .user import UserModel
 
-__all__ = ["UserModel", "Base"]
+__all__ = ["UserModel", "Base", "BaseEntity", "CityModel"]
