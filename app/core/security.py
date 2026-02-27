@@ -3,8 +3,8 @@ from datetime import datetime, timedelta, timezone
 import bcrypt
 import jwt
 
-from config import settings
-from models import TokenPayload
+from app.core import settings
+from app.schemas import TokenPayload
 
 SECRET_KEY = settings.SECRET_KEY
 ALGORITHM = settings.JWT_ALGORITHM

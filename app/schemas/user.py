@@ -19,7 +19,3 @@ class UserRead(UserBase):
     model_config = ConfigDict(from_attributes=True)
     id: int
     is_verified: bool
-
-
-class TokenPayload(BaseModel):
-    sub: str
