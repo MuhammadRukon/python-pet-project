@@ -8,6 +8,10 @@ def get_user_by_email(db: DB, email: str):
     return db.query(UserModel).filter(UserModel.email == email).first()
 
 
+def get_user_by_id(db: DB, id: str):
+    return db.query(UserModel).filter(UserModel.id == id).first()
+
+
 def create_user(db: DB, payload: UserCreate):
     hash = get_password_hash(payload.password)
 

@@ -19,4 +19,5 @@ class UserLogin(BaseModel):
 
 class UserRead(BaseEntity, UserBase):
     model_config = ConfigDict(from_attributes=True)
+    # TODO: add id
     is_verified: bool

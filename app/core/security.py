@@ -2,6 +2,7 @@ from datetime import datetime, timedelta, timezone
 
 import bcrypt
 import jwt
+from fastapi import HTTPException
 
 from app.core import settings
 from app.schemas import TokenPayload
@@ -53,3 +54,19 @@ def create_refresh_token(subject: str) -> str:
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 
     return encoded_jwt
+
+
+def validate_refresh_token(token: str):
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        if payload.get("type") != "refresh":
+            raise HTTPException(status_code=401, detail="Expected refresh token")
+        user_id = payload.get("sub")
+        if not user_id:
+            raise HTTPException(status_code=401, detail="Missing user_id in token")
+        return user_id
+
+    except jwt.ExpiredSignatureError:
+        raise HTTPException(status_code=401, detail="Refresh token expired")
+    except jwt.InvalidTokenError:
+        raise HTTPException(status_code=401, detail="Invalid refresh token")

@@ -1,30 +1,22 @@
-from fastapi import APIRouter, HTTPException, Response
+from fastapi import APIRouter, HTTPException, Request, Response
 
 from app.api.deps import DB
 from app.core import (
     REFRESH_TOKEN_EXPIRE_DAYS,
     create_access_token,
     create_refresh_token,
+    validate_refresh_token,
     verify_password,
 )
 from app.crud import create_user, get_user_by_email
+from app.crud.auth import get_user_by_id
+from app.models import UserModel
 from app.schemas import TokenPayload, UserCreate, UserLogin, UserRead
 
 router = APIRouter()
 
 
-@router.post("/login")
-def login(payload: UserLogin, response: Response, db: DB):
-    user = get_user_by_email(db, payload.email)
-
-    if not user:
-        raise HTTPException(status_code=400, detail="user does not exist")
-
-    is_match = verify_password(payload.password, user.password_hash)
-
-    if not is_match:
-        raise HTTPException(status_code=401, detail="Invalid password")
-
+def create_tokens_and_response(user: UserModel, response: Response):
     token_payload = TokenPayload(sub=str(user.id))
     # default time is 15 minutes
     access_token = create_access_token(data=token_payload)
@@ -50,6 +42,21 @@ def login(payload: UserLogin, response: Response, db: DB):
     }
 
 
+@router.post("/login")
+def login(payload: UserLogin, response: Response, db: DB):
+    user = get_user_by_email(db, payload.email)
+
+    if not user:
+        raise HTTPException(status_code=400, detail="user does not exist")
+
+    is_match = verify_password(payload.password, user.password_hash)
+
+    if not is_match:
+        raise HTTPException(status_code=401, detail="Invalid password")
+
+    return create_tokens_and_response(user, response)
+
+
 # Auth related api
 @router.post("/register", response_model=UserRead)
 def register(payload: UserCreate, db: DB):
@@ -61,3 +68,20 @@ def register(payload: UserCreate, db: DB):
 
     user = create_user(db=db, payload=payload)
     return user
+
+
+@router.post("/refresh")
+def refresh(request: Request, response: Response, db: DB):
+    refresh_token = request.cookies.get("refresh_token")
+
+    if not refresh_token:
+        raise HTTPException(status_code=401, detail="Refresh token missing")
+
+    user_id = validate_refresh_token(refresh_token)
+
+    user = get_user_by_id(db, user_id)
+
+    if not user:
+        raise HTTPException(status_code=404, detail="user not found")
+
+    return create_tokens_and_response(user, response)
