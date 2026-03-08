@@ -16,6 +16,7 @@ def list_all_cities_for_admin(db: DB):
     return cities
 
 
+# apply middleware to check access
 @router.post("")
 def create_city(payload: CityCreate, db: DB):
 
@@ -26,3 +27,17 @@ def create_city(payload: CityCreate, db: DB):
     db.refresh(city)
 
     return city
+
+
+@router.delete("/{id}")
+def delete_city(id: str, db: DB):
+
+    city = db.query(CityModel).filter(CityModel.id == id).first()
+
+    if not city:
+        return {"error": "City not found"}
+
+    db.delete(city)
+    db.commit()
+
+    return {"message": f"Deleted city {id}"}
