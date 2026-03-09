@@ -20,3 +20,7 @@ class CityReadPublic(CityBase):
 
 class CityReadAdmin(BaseEntity, CityBase):
     is_active: bool
+
+
+class CityUpdate(BaseModel):
+    name: str

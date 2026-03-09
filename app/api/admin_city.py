@@ -1,9 +1,9 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
 from sqlalchemy import select
 
 from app.api.deps import DB
 from app.models import CityModel
-from app.schemas import CityCreate, CityReadAdmin
+from app.schemas import CityCreate, CityReadAdmin, CityUpdate
 
 router = APIRouter()
 
@@ -41,3 +41,19 @@ def delete_city(id: str, db: DB):
     db.commit()
 
     return {"message": f"Deleted city {id}"}
+
+
+@router.patch("/{id}")
+def update_city(payload: CityUpdate, id: str, db: DB):
+
+    city = db.query(CityModel).filter(CityModel.id == id).first()
+
+    if not city:
+        raise HTTPException(status_code=400, detail="city not found")
+
+    city.name = payload.name
+
+    db.commit()
+    db.refresh(city)
+
+    return city
