@@ -57,7 +57,6 @@ def login(payload: UserLogin, response: Response, db: DB):
     return create_tokens_and_response(user, response)
 
 
-# Auth related api
 @router.post("/register", response_model=UserRead)
 def register(payload: UserCreate, db: DB):
 
@@ -85,3 +84,9 @@ def refresh(request: Request, response: Response, db: DB):
         raise HTTPException(status_code=404, detail="user not found")
 
     return create_tokens_and_response(user, response)
+
+
+@router.post("/logout")
+def logout(response: Response):
+    response.delete_cookie(key="refresh_token", httponly=True)
+    return {"message": "Logged out successfully"}

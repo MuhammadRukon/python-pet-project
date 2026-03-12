@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException
 from sqlalchemy import select
 
-from app.api.deps import DB
+from app.api.deps import DB, current_user
 from app.models import CityModel
 from app.schemas import CityCreate, CityReadAdmin, CityUpdate
 
@@ -9,7 +9,7 @@ router = APIRouter()
 
 
 @router.get("", response_model=list[CityReadAdmin])
-def list_all_cities_for_admin(db: DB):
+def list_all_cities_for_admin(db: DB, current_user: current_user):
 
     result = db.execute(select(CityModel))
     cities = result.scalars().all()
@@ -18,7 +18,7 @@ def list_all_cities_for_admin(db: DB):
 
 # apply middleware to check access
 @router.post("")
-def create_city(payload: CityCreate, db: DB):
+def create_city(payload: CityCreate, db: DB, current_user: current_user):
 
     city = CityModel(**payload.model_dump())
 
@@ -30,7 +30,7 @@ def create_city(payload: CityCreate, db: DB):
 
 
 @router.delete("/{id}")
-def delete_city(id: str, db: DB):
+def delete_city(id: str, db: DB, current_user: current_user):
 
     city = db.query(CityModel).filter(CityModel.id == id).first()
 
@@ -44,7 +44,7 @@ def delete_city(id: str, db: DB):
 
 
 @router.patch("/{id}")
-def update_city(payload: CityUpdate, id: str, db: DB):
+def update_city(payload: CityUpdate, id: str, db: DB, current_user: current_user):
 
     city = db.query(CityModel).filter(CityModel.id == id).first()
 

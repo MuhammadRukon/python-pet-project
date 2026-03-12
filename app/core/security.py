@@ -2,7 +2,8 @@ from datetime import datetime, timedelta, timezone
 
 import bcrypt
 import jwt
-from fastapi import HTTPException
+from fastapi import Depends, HTTPException
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 from app.core import settings
 from app.schemas import TokenPayload
@@ -70,3 +71,23 @@ def validate_refresh_token(token: str):
         raise HTTPException(status_code=401, detail="Refresh token expired")
     except jwt.InvalidTokenError:
         raise HTTPException(status_code=401, detail="Invalid refresh token")
+
+
+security = HTTPBearer()
+
+
+def get_token_payload(
+    auth: HTTPAuthorizationCredentials = Depends(security),
+) -> dict:
+    try:
+        token = auth.credentials
+        print(token, "token")
+        print(SECRET_KEY, "SECRET_KEY")
+        print(ALGORITHM, "ALGORITHM")
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+
+        return payload
+    except jwt.ExpiredSignatureError:
+        raise HTTPException(status_code=401, detail="Token has expired")
+    except jwt.InvalidTokenError:
+        raise HTTPException(status_code=401, detail="Invalid token")
